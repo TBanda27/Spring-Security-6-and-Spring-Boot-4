@@ -3,9 +3,14 @@ spring:
     name: security
 
   security:
-    user:
-      name: user
-      password: user
+    oauth2:
+      client:
+        registration:
+          google.client-id: 1042070156406-rjqirpjcdbsf04u7kqnjftm0ichjmk9r.apps.googleusercontent.com
+          google.client-secret: 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
+          google.scope:
+            - profile
+            - email
 
   datasource:
     url: jdbc:mysql://localhost:3306/security
@@ -18,4 +23,9 @@ spring:
     hibernate:
       ddl-auto: update   # or validate / create-drop / none
     show-sql: true       # optional, remove in prod
+
+jwt:
+  secret: ebda58f0cdf7fb337418055d74408615af96c24e467a711bf6a2a99c16bceaba
+
+
 
