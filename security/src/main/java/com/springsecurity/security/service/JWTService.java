@@ -2,24 +2,20 @@ package com.springsecurity.security.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.Key;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@Slf4j
 public class JWTService {
     // DON'T generate random keys
     @Value("${jwt.secret}")
@@ -27,6 +23,11 @@ public class JWTService {
 
     public String generateToken(String username) {
         Map<String,Object> claims = new HashMap<>();
+        Date issuedAt = new Date(System.currentTimeMillis());
+        Date expiresAt = new Date(System.currentTimeMillis() + 60*1000); // 1 minute for testing
+
+        log.info("Creating token for user: {} | Issued at: {} | Expires at: {}", username, issuedAt, expiresAt);
+
         return Jwts.builder()
                 .header()
                 .type("JWT")
@@ -34,8 +35,8 @@ public class JWTService {
                 .claims()
                 .add(claims)
                 .subject(username)
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 30*60*100))
+                .issuedAt(issuedAt)
+                .expiration(expiresAt)
                 .and()
                 .signWith(getKey())
                 .compact();
@@ -71,7 +72,14 @@ public class JWTService {
     }
 
     public boolean isTokenExpired(String authToken) {
-        return extractExpiration(authToken).before(new Date());
+        Date expirationDate = extractExpiration(authToken);
+        Date currentDate = new Date();
+        boolean isExpired = expirationDate.before(currentDate);
+
+        log.info("Token expiration check | Expires at: {} | Current time: {} | Is expired: {}",
+                 expirationDate, currentDate, isExpired);
+
+        return isExpired;
     }
 
     private Date extractExpiration(String authToken) {
